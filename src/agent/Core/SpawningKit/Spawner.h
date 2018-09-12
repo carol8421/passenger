@@ -1,6 +1,6 @@
 /*
  *  Phusion Passenger - https://www.phusionpassenger.com/
- *  Copyright (c) 2011-2017 Phusion Holding B.V.
+ *  Copyright (c) 2011-2018 Phusion Holding B.V.
  *
  *  "Passenger", "Phusion Passenger" and "Union Station" are registered
  *  trademarks of Phusion Holding B.V.
@@ -31,6 +31,7 @@
 
 #include <modp_b64.h>
 
+#include <AppLocalConfigFileUtils.h>
 #include <LoggingKit/Logging.h>
 #include <Utils/SystemTime.h>
 #include <Core/SpawningKit/Context.h>
@@ -79,8 +80,7 @@ protected:
 	void setConfigFromAppPoolOptions(Config *config, Json::Value &extraArgs,
 		const AppPoolOptions &options)
 	{
-		string startCommand = options.getStartCommand(*context->resourceLocator,
-			*context->wrapperRegistry);
+		TRACE_POINT();
 		string envvarsData;
 		try {
 			envvarsData = modp::b64_decode(options.environmentVariables.data(),
@@ -91,15 +91,28 @@ protected:
 			envvarsData.clear();
 		}
 
+		Json::Value appLocalConfig = parseAppLocalConfigFile(options.appRoot);
+
+		if (appLocalConfig["app_supports_kuria_protocol"].asBool()) {
+			config->genericApp = false;
+			config->startsUsingWrapper = false;
+			config->startCommand = options.appStartCommand;
+		} else if (options.appType.empty()) {
+			config->genericApp = true;
+			config->startCommand = options.appStartCommand;
+		} else {
+			config->genericApp = false;
+			config->startsUsingWrapper = true;
+			config->startCommand = options.getStartCommand(*context->resourceLocator,
+				*context->wrapperRegistry);
+		}
+
 		config->appGroupName = options.getAppGroupName();
 		config->appRoot = options.appRoot;
 		config->logLevel = options.logLevel;
-		config->genericApp = false;
-		config->startsUsingWrapper = true;
 		config->wrapperSuppliedByThirdParty = false;
 		config->findFreePort = false;
 		config->loadShellEnvvars = options.loadShellEnvvars;
-		config->startCommand = startCommand;
 		config->startupFile = options.getStartupFile(*context->wrapperRegistry);
 		config->appType = options.appType;
 		config->appEnv = options.environment;

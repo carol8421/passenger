@@ -77,7 +77,7 @@ namespace tut {
 		// https://code.google.com/p/phusion-passenger/issues/detail?id=842#c19
 		SpawningKit::AppPoolOptions options = createOptions();
 		options.appRoot      = "stub/rack";
-		options.startCommand = "ruby\t" "start.rb\t" "--execself";
+		options.appStartCommand = "ruby start.rb --execself";
 		options.startupFile  = "start.rb";
 		SpawnerPtr spawner = createSpawner(options);
 		result = spawner->spawn(options);
