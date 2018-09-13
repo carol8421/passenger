@@ -91,13 +91,9 @@ protected:
 			envvarsData.clear();
 		}
 
-		UserSwitchingInfo usInfo = prepareUserSwitching(options,
-			*context->wrapperRegistry);
+		AppLocalConfig appLocalConfig = parseAppLocalConfigFile(options.appRoot);
 
-		Json::Value appLocalConfig = parseAppLocalConfigFile(*context->resourceLocator,
-			options.appRoot, usInfo.username);
-
-		if (appLocalConfig["app_supports_kuria_protocol"].asBool()) {
+		if (appLocalConfig.appSupportsKuriaProtocol) {
 			config->genericApp = false;
 			config->startsUsingWrapper = false;
 			config->startCommand = options.appStartCommand;
@@ -129,8 +125,11 @@ protected:
 		config->lveMinUid = options.lveMinUid;
 		config->fileDescriptorUlimit = options.fileDescriptorUlimit;
 		config->startTimeoutMsec = options.startTimeout;
-		config->user = usInfo.username;
-		config->group = usInfo.groupname;
+
+		UserSwitchingInfo info = prepareUserSwitching(options,
+			*context->wrapperRegistry);
+		config->user = info.username;
+		config->group = info.groupname;
 
 		extraArgs["spawn_method"] = options.spawnMethod.toString();
 

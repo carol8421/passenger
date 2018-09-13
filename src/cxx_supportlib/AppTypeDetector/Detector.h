@@ -178,10 +178,10 @@ public:
 		char buf[PATH_MAX + 32];
 		const char *end = buf + sizeof(buf) - 1;
 
-		Json::Value appLocalConfig = parseAppLocalConfigFile(appRoot);
-		if (appLocalConfig.isMember("app_start_command")) {
+		AppLocalConfig appLocalConfig = parseAppLocalConfigFile(appRoot);
+		if (!appLocalConfig.appStartCommand.empty()) {
 			Result result;
-			result.appStartCommand = appLocalConfig["app_start_command"].asString();
+			result.appStartCommand = appLocalConfig.appStartCommand;
 			return result;
 		}
 

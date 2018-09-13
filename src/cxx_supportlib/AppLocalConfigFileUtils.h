@@ -34,12 +34,10 @@
 
 #include <jsoncpp/json.h>
 
-#include <ResourceLocator/Locator.h>
 #include <StaticString.h>
 #include <Constants.h>
 #include <Exceptions.h>
-#include <FileTools/FileManip.h>
-#include <ProcessManagement/Spawn.h>
+#include <Utils/IOUtils.h>
 #include <Utils/ScopeGuard.h>
 
 namespace Passenger {
@@ -47,68 +45,101 @@ namespace Passenger {
 using namespace std;
 
 
-inline Json::Value
-parseAppLocalConfigFile(const ResourceLocator &resourceLocator, const StaticString appRoot,
-	StaticString user)
-{
+struct AppLocalConfig {
+	string appStartCommand;
+	bool appSupportsKuriaProtocol;
+
+	AppLocalConfig()
+		: appSupportsKuriaProtocol(false)
+		{ }
+};
+
+
+inline AppLocalConfig
+parseAppLocalConfigFile(const StaticString appRoot) {
 	TRACE_POINT();
 	string path = appRoot + "/Passengerfile.json";
 
-	if (!fileExists(path)) {
-		return Json::Value();
-	}
-
 	// Reading from Passengerfile.json from a root process is unsafe
-	// because of symlink attacks.
+	// because of symlink attacks and other kinds of attacks. See the
+	// comments for safeReadFile().
+	//
 	// We are unable to use safeReadFile() here because we do not
 	// control the safety of the directories leading up to appRoot.
-	// So we fork a child process with limited privileges to do the
-	// read.
+	//
+	// What we can do is preventing the contents of an arbitrary
+	// file read from leaking out. Therefore, our result struct
+	// only contains a limited number of fields, that are known
+	// not to contain sensitive information. We also don't propagate
+	// JSON parsing error messages, which may contain the content.
 
-	string agentExe = resourceLocator.findSupportBinary(AGENT_EXE);
-	string userNt = user.toString();
-	const char *command[] = {
-		agentExe.c_str(),
-		agentExe.c_str(),
-		"exec-helper",
-		"--user",
-		userNt.c_str(),
-
-		agentExe.c_str(),
-		"file-read-helper",
-		path.c_str(),
-
-		NULL
-	};
-	SubprocessInfo info;
-	SubprocessOutput output;
-
-	try {
-		runCommandAndCaptureOutput(command, info, output, 1024 * 512);
-	} catch (const SystemException &e) {
-		throw SystemException("Cannot read from '" + path
-			+ "': error reading from reader subprocess",
-			e.code());
+	int fd = syscalls::open(path.c_str(), O_RDONLY | O_NONBLOCK);
+	if (fd == -1) {
+		if (errno == EEXIST) {
+			return AppLocalConfig();
+		} else {
+			int e = errno;
+			throw FileSystemException("Error opening '" + path
+				+ "' for reading", e, path);
+		}
 	}
-	if (!output.eof) {
+
+	UPDATE_TRACE_POINT();
+	FdGuard fdGuard(fd, __FILE__, __LINE__);
+	pair<string, bool> content;
+	try {
+		content = readAll(fd, 1024 * 512);
+	} catch (const SystemException &e) {
+		throw FileSystemException("Error reading from '" + path + "'",
+			e.code(), path);
+	}
+	if (content.second) {
 		throw SecurityException("Error parsing " + path
 			+ ": file exceeds size limit of 512 KB");
 	}
+	fdGuard.runNow();
 
-	// Parse JSON.
-
+	UPDATE_TRACE_POINT();
 	Json::Reader reader;
 	Json::Value config;
-	if (!reader.parse(output.data, config)) {
-		throw RuntimeException("Error parsing " + path + ": "
-			+ reader.getFormattedErrorMessages());
+	if (!reader.parse(content.first, config)) {
+		if (geteuid() == 0) {
+			throw RuntimeException("Error parsing " + path
+				+ " (error messages suppressed for security reasons)");
+		} else {
+			throw RuntimeException("Error parsing " + path + ": "
+				+ reader.getFormattedErrorMessages());
+		}
 	}
 	// We no longer need the raw data so free the memory.
-	output.data.resize(0);
+	content.first.resize(0);
 
-	// TODO: validate JSON and its keys
 
-	return config;
+	UPDATE_TRACE_POINT();
+	AppLocalConfig result;
+
+	if (!config.isObject()) {
+		throw RuntimeException("Config file " + path
+			+ " is not valid: top-level JSON object expected");
+	}
+	if (config.isMember("app_start_command")) {
+		if (config["app_start_command"].isString()) {
+			result.appStartCommand = config["app_start_command"].asString();
+		} else {
+			throw RuntimeException("Config file " + path
+				+ " is not valid: key 'app_start_command' must be a boolean");
+		}
+	}
+	if (config.isMember("app_supports_kuria_protocol")) {
+		if (config["app_supports_kuria_protocol"].isBool()) {
+			result.appSupportsKuriaProtocol = config["app_supports_kuria_protocol"].asBool();
+		} else {
+			throw RuntimeException("Config file " + path
+				+ " is not valid: key 'app_supports_kuria_protocol' must be a boolean");
+		}
+	}
+
+	return result;
 }
 
 
