@@ -58,7 +58,7 @@
 #include <Constants.h>
 #include <LoggingKit/LoggingKit.h>
 #include <LoggingKit/Context.h>
-#include <ResourceLocator.h>
+#include <ResourceLocator/Locator.h>
 #include <ProcessManagement/Utils.h>
 #include <Utils.h>
 #include <Utils/AsyncSignalSafeUtils.h>

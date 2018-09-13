@@ -353,8 +353,11 @@ COMMON_LIBRARY = CommonLibraryBuilder.new do
   define_component 'AppTypeDetector/CBindings.o',
     :source   => 'AppTypeDetector/CBindings.cpp',
     :category => :other
-  define_component 'WrapperRegistry/CBindings.o',
+    define_component 'WrapperRegistry/CBindings.o',
     :source   => 'WrapperRegistry/CBindings.cpp',
+    :category => :other
+  define_component 'ResourceLocator/CBindings.o',
+    :source   => 'ResourceLocator/CBindings.cpp',
     :category => :other
 
   define_component 'vendor-modified/modp_b64.o',

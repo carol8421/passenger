@@ -19,7 +19,7 @@
 #include <uv.h>
 
 #include "../tut/tut.h"
-#include <ResourceLocator.h>
+#include <ResourceLocator/Locator.h>
 #include <InstanceDirectory.h>
 #include <BackgroundEventLoop.h>
 #include <Exceptions.h>

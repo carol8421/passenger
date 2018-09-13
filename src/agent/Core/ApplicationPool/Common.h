@@ -31,7 +31,7 @@
 #include <boost/intrusive_ptr.hpp>
 #include <boost/function.hpp>
 #include <oxt/tracable_exception.hpp>
-#include <ResourceLocator.h>
+#include <ResourceLocator/Locator.h>
 #include <RandomGenerator.h>
 #include <StaticString.h>
 #include <MemoryKit/palloc.h>

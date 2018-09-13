@@ -84,7 +84,7 @@
 #include <AppTypeDetector/Detector.h>
 #include <MessageReadersWriters.h>
 #include <FileDescriptor.h>
-#include <ResourceLocator.h>
+#include <ResourceLocator/Locator.h>
 #include <BackgroundEventLoop.cpp>
 #include <FileTools/FileManip.h>
 #include <FileTools/PathSecurityCheck.h>

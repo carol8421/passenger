@@ -52,7 +52,7 @@
 #endif
 #include <vector>
 #include <FileDescriptor.h>
-#include <ResourceLocator.h>
+#include <ResourceLocator/Locator.h>
 #include <Exceptions.h>
 #include <ProcessManagement/Spawn.h>
 #include <ProcessManagement/Utils.h>
