@@ -34,9 +34,12 @@
 
 #include <jsoncpp/json.h>
 
+#include <ResourceLocator/Locator.h>
 #include <StaticString.h>
+#include <Constants.h>
 #include <Exceptions.h>
 #include <FileTools/FileManip.h>
+#include <ProcessManagement/Spawn.h>
 #include <Utils/ScopeGuard.h>
 
 namespace Passenger {
@@ -45,42 +48,63 @@ using namespace std;
 
 
 inline Json::Value
-parseAppLocalConfigFile(const StaticString appRoot) {
+parseAppLocalConfigFile(const ResourceLocator &resourceLocator, const StaticString appRoot,
+	StaticString user)
+{
 	TRACE_POINT();
+	string path = appRoot + "/Passengerfile.json";
 
-	if (!fileExists(appRoot + "/Passengerfile.json")) {
+	if (!fileExists(path)) {
 		return Json::Value();
 	}
 
-	int dirfd = syscalls::open(appRoot.toString().c_str(), O_RDONLY);
-	if (dirfd == -1) {
-		int e = errno;
-		throw FileSystemException("Cannot open " + appRoot, e, appRoot);
+	// Reading from Passengerfile.json from a root process is unsafe
+	// because of symlink attacks.
+	// We are unable to use safeReadFile() here because we do not
+	// control the safety of the directories leading up to appRoot.
+	// So we fork a child process with limited privileges to do the
+	// read.
+
+	string agentExe = resourceLocator.findSupportBinary(AGENT_EXE);
+	string userNt = user.toString();
+	const char *command[] = {
+		agentExe.c_str(),
+		agentExe.c_str(),
+		"exec-helper",
+		"--user",
+		userNt.c_str(),
+
+		agentExe.c_str(),
+		"file-read-helper",
+		path.c_str(),
+
+		NULL
+	};
+	SubprocessInfo info;
+	SubprocessOutput output;
+
+	try {
+		runCommandAndCaptureOutput(command, info, output, 1024 * 512);
+	} catch (const SystemException &e) {
+		throw SystemException("Cannot read from '" + path
+			+ "': error reading from reader subprocess",
+			e.code());
+	}
+	if (!output.eof) {
+		throw SecurityException("Error parsing " + path
+			+ ": file exceeds size limit of 512 KB");
 	}
 
-	FdGuard dirfdGuard(dirfd, __FILE__, __LINE__);
-	// This read is safe because the appRoot path comes from the web server.
-	pair<string, bool> contents;
-	try {
-		contents = safeReadFile(dirfd, "Passengerfile.json",
-		1024 * 512);
-	} catch (const FileSystemException &e) {
-		throw FileSystemException("Cannot open '" + appRoot
-			+ "/Passengerfile.json' for reading",
-			e.code(),
-			appRoot + "/Passengerfile.json");
-	}
-	if (!contents.second) {
-		throw SecurityException("Error parsing " + appRoot
-			+ "/Passengerfile.json: file exceeds size limit of 512 KB");
-	}
+	// Parse JSON.
 
 	Json::Reader reader;
 	Json::Value config;
-	if (!reader.parse(contents.first, config)) {
-		throw RuntimeException("Error parsing " + appRoot
-			+ "/Passengerfile.json: " + reader.getFormattedErrorMessages());
+	if (!reader.parse(output.data, config)) {
+		throw RuntimeException("Error parsing " + path + ": "
+			+ reader.getFormattedErrorMessages());
 	}
+	// We no longer need the raw data so free the memory.
+	output.data.resize(0);
 
 	// TODO: validate JSON and its keys
 
