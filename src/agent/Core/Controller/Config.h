@@ -223,9 +223,10 @@ public:
  * (do not edit: following text is automatically generated
  * by 'rake configkit_schemas_inline_comments')
  *
- *   app_root       string   -          default,read_only
- *   app_type       string   required   read_only
- *   startup_file   string   required   read_only
+ *   app_root            string   -   default,read_only
+ *   app_start_command   string   -   read_only
+ *   app_type            string   -   read_only
+ *   startup_file        string   -   read_only
  *
  * END
  */

@@ -158,6 +158,7 @@ using namespace std;
  *   server_software                                                 string             -          default("Phusion_Passenger/5.3.5")
  *   show_version_in_header                                          boolean            -          default(true)
  *   single_app_mode_app_root                                        string             -          default,read_only
+ *   single_app_mode_app_start_command                               string             -          read_only
  *   single_app_mode_app_type                                        string             -          read_only
  *   single_app_mode_startup_file                                    string             -          read_only
  *   standalone_engine                                               string             -          default

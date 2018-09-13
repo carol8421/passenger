@@ -93,7 +93,7 @@ parseAppLocalConfigFile(const StaticString appRoot) {
 		throw FileSystemException("Error reading from '" + path + "'",
 			e.code(), path);
 	}
-	if (content.second) {
+	if (!content.second) {
 		throw SecurityException("Error parsing " + path
 			+ ": file exceeds size limit of 512 KB");
 	}
