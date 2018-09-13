@@ -33,7 +33,7 @@
 #include <algorithm>
 #include <cstddef>
 
-#include <ResourceLocator/Locator.h>
+#include <ResourceLocator.h>
 #include <RandomGenerator.h>
 #include <Exceptions.h>
 #include <WrapperRegistry/Registry.h>

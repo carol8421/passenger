@@ -34,7 +34,7 @@
 #include <oxt/backtrace.hpp>
 
 #include <Crypto.h>
-#include <ResourceLocator/Locator.h>
+#include <ResourceLocator.h>
 #include <Exceptions.h>
 #include <StaticString.h>
 #include <ConfigKit/ConfigKit.h>

@@ -31,7 +31,7 @@
 
 #include <ProcessManagement/Spawn.h>
 #include <ProcessManagement/Ruby.h>
-#include <ResourceLocator/Locator.h>
+#include <ResourceLocator.h>
 #include <Exceptions.h>
 
 namespace Passenger {

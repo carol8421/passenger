@@ -33,7 +33,7 @@
 #include <WrapperRegistry/Registry.h>
 #include <DataStructures/HashedStaticString.h>
 #include <Constants.h>
-#include <ResourceLocator/Locator.h>
+#include <ResourceLocator.h>
 #include <StaticString.h>
 #include <FileTools/PathManip.h>
 #include <Utils.h>

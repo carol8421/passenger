@@ -81,7 +81,7 @@ void        psg_watchdog_launcher_free(PsgWatchdogLauncher *launcher);
 #include <Constants.h>
 #include <FileDescriptor.h>
 #include <Exceptions.h>
-#include <ResourceLocator/Locator.h>
+#include <ResourceLocator.h>
 #include <LoggingKit/LoggingKit.h>
 #include <LoggingKit/Context.h>
 #include <ProcessManagement/Utils.h>

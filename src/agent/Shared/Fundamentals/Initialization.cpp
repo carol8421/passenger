@@ -47,7 +47,7 @@
 #include <cassert>
 
 #include <Exceptions.h>
-#include <ResourceLocator/Locator.h>
+#include <ResourceLocator.h>
 #include <LoggingKit/LoggingKit.h>
 #include <LoggingKit/Context.h>
 #include <Utils/StrIntUtils.h>
