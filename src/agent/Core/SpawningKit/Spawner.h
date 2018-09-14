@@ -92,6 +92,7 @@ protected:
 		}
 
 		AppLocalConfig appLocalConfig = parseAppLocalConfigFile(options.appRoot);
+		string startCommand;
 
 		if (appLocalConfig.appSupportsKuriaProtocol) {
 			config->genericApp = false;
@@ -101,10 +102,11 @@ protected:
 			config->genericApp = true;
 			config->startCommand = options.appStartCommand;
 		} else {
+			startCommand = options.getStartCommand(*context->resourceLocator,
+				*context->wrapperRegistry);
 			config->genericApp = false;
 			config->startsUsingWrapper = true;
-			config->startCommand = options.getStartCommand(*context->resourceLocator,
-				*context->wrapperRegistry);
+			config->startCommand = startCommand;
 		}
 
 		config->appGroupName = options.getAppGroupName();

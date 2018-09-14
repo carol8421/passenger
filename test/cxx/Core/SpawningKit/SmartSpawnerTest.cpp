@@ -77,17 +77,18 @@ namespace tut {
 
 		SpawningKit::AppPoolOptions createOptions() {
 			SpawningKit::AppPoolOptions options;
+			options.appType     = "directly-through-start-command";
 			options.spawnMethod = "smart";
 			options.loadShellEnvvars = false;
 			return options;
 		}
 	};
 
-	DEFINE_TEST_GROUP_WITH_LIMIT(Core_SpawningKit_SmartSpawnerTest, 90);
+	DEFINE_TEST_GROUP(Core_SpawningKit_SmartSpawnerTest);
 
 	#include "SpawnerTestCases.cpp"
 
-	TEST_METHOD(80) {
+	TEST_METHOD(10) {
 		set_test_name("If the preloader has crashed then SmartSpawner will "
 			"restart it and try again");
 		SpawningKit::AppPoolOptions options = createOptions();
@@ -106,7 +107,7 @@ namespace tut {
 		spawner->spawn(options);
 	}
 
-	TEST_METHOD(81) {
+	TEST_METHOD(11) {
 		set_test_name("If the preloader still crashes after the restart then "
 			"SmartSpawner will throw an exception");
 		SpawningKit::AppPoolOptions options = createOptions();
@@ -123,7 +124,7 @@ namespace tut {
 		}
 	}
 
-	TEST_METHOD(82) {
+	TEST_METHOD(12) {
 		set_test_name("If the preloader didn't start within the timeout"
 			" then it's killed and an exception is thrown, which"
 			" contains whatever it printed to stdout and stderr");
@@ -166,7 +167,7 @@ namespace tut {
 		}
 	}
 
-	TEST_METHOD(83) {
+	TEST_METHOD(13) {
 		set_test_name("If the preloader crashed during startup,"
 			" then the resulting exception contains the stdout"
 			" and stderr output");
@@ -192,7 +193,7 @@ namespace tut {
 		}
 	}
 
-	TEST_METHOD(84) {
+	TEST_METHOD(14) {
 		set_test_name("If the preloader encountered an error,"
 			" then the resulting exception"
 			" takes note of the process's environment variables");

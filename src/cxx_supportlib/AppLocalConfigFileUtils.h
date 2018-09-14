@@ -75,7 +75,7 @@ parseAppLocalConfigFile(const StaticString appRoot) {
 
 	int fd = syscalls::open(path.c_str(), O_RDONLY | O_NONBLOCK);
 	if (fd == -1) {
-		if (errno == EEXIST) {
+		if (errno == ENOENT) {
 			return AppLocalConfig();
 		} else {
 			int e = errno;
